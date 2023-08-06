@@ -1,11 +1,12 @@
 import "./App.css";
-import React, { createContext, useState } from "react";
+import React, { createContext, useState, useReducer } from "react";
 import Header from "./components/Header";
 import ResultContainer from "./components/ResultContainer";
 export const HeaderContext = createContext();
 
 function App() {
   const languageArray = [
+    "",
     "ar",
     "de",
     "en",
@@ -22,6 +23,7 @@ function App() {
     "zh",
   ];
   const categoryArray = [
+    "",
     "business",
     "entertainment",
     "general",
@@ -31,6 +33,7 @@ function App() {
     "technology",
   ];
   const countryArray = [
+    "",
     "ae",
     "ar",
     "at",
@@ -87,35 +90,138 @@ function App() {
     "za",
   ];
 
-  const languageOptions = languageArray.map((l) => (
-    <option value={l}>{l}</option>
-  ));
-  const countryOptions = countryArray.map((l) => (
-    <option value={l}>{l}</option>
-  ));
-  const categoryOptions = categoryArray.map((l) => (
-    <option value={l}>{l}</option>
-  ));
+  const setPriority = (state) => {
+    let key,
+      updatedState = [],
+      priority;
 
-  const [keyword, setKeyword] = useState("");
-  const [category, setCategory] = useState("");
-  const [country, setCountry] = useState("");
-  const [language, setLanguage] = useState("");
-  const [priority, setPriority] = useState("");
+    for (key in state) {
+      if (key === "date") {
+        state[key].from !== "" && updatedState.push("from");
+        state[key].to !== "" && updatedState.push("to");
+      } else state[key] !== "" && updatedState.push(key);
+    }
+
+    if (updatedState.includes("language")) {
+      if (
+        updatedState.includes("category") ||
+        updatedState.includes("country")
+      ) {
+        priority = "sources";
+      }
+    } else if (
+      updatedState.includes("category") ||
+      updatedState.includes("country")
+    ) {
+      priority = "top-headlines";
+    }
+
+    if (priority === undefined) priority = "everything";
+
+    console.log({ priority });
+
+    return { priority };
+  };
+
+  // Filter page options state management useReducer
+  const initFilter = {
+    keyword: "",
+    category: "",
+    country: "",
+    language: "",
+    searchIn: "",
+    date: {
+      from: "",
+      to: "",
+    },
+    sortBy: "publishedAt",
+    pageSize: 20,
+    priority: "",
+  };
+
+  const reducer = (filter, param) => {
+    switch (param.action) {
+      case "keyword":
+        const { keyword } = param;
+        return {
+          ...filter,
+          keyword,
+          ...setPriority({ ...filter, keyword }),
+        };
+      case "category":
+        const { category } = param;
+        return {
+          ...filter,
+          category,
+          ...setPriority({ ...filter, category }),
+        };
+      case "country":
+        const { country } = param;
+        return {
+          ...filter,
+          country,
+          ...setPriority({ ...filter, country }),
+        };
+      case "language":
+        const { language } = param;
+        return {
+          ...filter,
+          language,
+          ...setPriority({ ...filter, language }),
+        };
+      case "searchIn":
+        const { searchIn } = param;
+        return {
+          ...filter,
+          searchIn,
+          ...setPriority({ ...filter, searchIn }),
+        };
+      case "date":
+        const { date } = param;
+        return {
+          ...filter,
+          date,
+          ...setPriority({ ...filter, date }),
+        };
+      case "sortBy":
+        const { sortBy } = param;
+        return {
+          ...filter,
+          sortBy,
+          ...setPriority({ ...filter, sortBy }),
+        };
+      case "pageSize":
+        const { pageSize } = param;
+        return {
+          ...filter,
+          pageSize,
+          ...setPriority({ ...filter, pageSize }),
+        };
+      default:
+        return filter;
+    }
+  };
+  const [filter, filterDispatch] = useReducer(reducer, initFilter);
+
+  const filterDispatchCall = (e) => {
+    console.group("filterDispatch");
+    filterDispatch(e);
+    console.groupEnd("filterDispatch");
+  };
+
+  const [triggerAPI, setTriggerAPI] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
 
   const contextData = {
-    options: { languageOptions, countryOptions, categoryOptions },
+    options: { languageArray, countryArray, categoryArray },
+
     state: {
-      keyword,
-      setKeyword,
-      category,
-      setCategory,
-      country,
-      setCountry,
-      language,
-      setLanguage,
-      priority,
-      setPriority,
+      showFilter,
+      setShowFilter,
+      triggerAPI,
+      setTriggerAPI,
+      filter,
+      filterDispatch: filterDispatchCall,
     },
   };
 
@@ -123,7 +229,7 @@ function App() {
     <div className="App">
       <HeaderContext.Provider value={contextData}>
         <Header />
-        <ResultContainer />
+        <ResultContainer triggerAPI={triggerAPI} />
       </HeaderContext.Provider>
     </div>
   );
