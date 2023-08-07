@@ -6,7 +6,7 @@ import FilterContainer from "./FilterContainer";
 import ProgressBar from "./utils/ProgressBar";
 
 export default function ResultContainer({ triggerAPI }) {
-  const apiKey = "5581761c8fb14321a7e0b74248e4c56e"; /* enter your keys */
+  const apiKey = "******************************"; /* enter your keys */
   const { state } = useContext(HeaderContext);
   const { filter, setTriggerAPI } = state;
 
