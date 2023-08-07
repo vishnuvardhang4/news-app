@@ -5,7 +5,7 @@ import { HeaderContext } from "../App";
 
 export default function FilterContainer({ style }) {
   const { state } = useContext(HeaderContext);
-  const { filter, filterDispatch, setTriggerAPI } = state;
+  const { filter, filterDispatch, setShowFilter, setTriggerAPI } = state;
 
   const containerStyle = {
     display: "flex",
@@ -190,7 +190,10 @@ export default function FilterContainer({ style }) {
           fontSize: "14px",
           fontWeight: "700",
         }}
-        onClick={() => setTriggerAPI(true)}
+        onClick={() => {
+          setTriggerAPI(true);
+          setShowFilter(false);
+        }}
       >
         Apply
       </button>

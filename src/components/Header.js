@@ -2,6 +2,8 @@ import React, { useContext } from "react";
 import { HeaderContext } from "../App";
 import SelectField from "./fields/SelectField";
 import InputField from "./fields/InputField";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlay, faFilter } from "@fortawesome/free-solid-svg-icons";
 
 export default function Header() {
   const { options, state } = useContext(HeaderContext);
@@ -25,11 +27,20 @@ export default function Header() {
 
   const selectBoxStyle = {
     width: "50px",
-    height: "20px",
+    height: "25px",
     paddingRight: "5px",
     backgroundColor: "darkorange",
     border: "1px solid #CCC",
     borderRadius: "5px",
+  };
+
+  const buttonStyle = {
+    backgroundColor: "#4CAF50",
+    border: "1px solid #CCC",
+    borderRadius: "5px",
+    color: "white",
+    fontSize: "large",
+    margin: "0px 10px",
   };
 
   const selectBlkStyle = {
@@ -83,7 +94,7 @@ export default function Header() {
         <SelectField
           data={{
             select: {
-              selectStyle: selectBoxStyle,
+              selectStyle: { ...selectBoxStyle, width: "100px" },
               selectId: "category",
               selectValue: filter.category,
               onChange: (e) => {
@@ -150,13 +161,22 @@ export default function Header() {
           }}
         />
         <button
+          style={buttonStyle}
           onClick={() => {
             setTriggerAPI(true);
           }}
         >
-          apply
+          <FontAwesomeIcon icon={faPlay} />
         </button>
-        <button onClick={() => setShowFilter(!showFilter)}>F</button>
+        <button
+          style={{
+            ...buttonStyle,
+            backgroundColor: showFilter ? "darkorange" : "#4CAF50",
+          }}
+          onClick={() => setShowFilter(!showFilter)}
+        >
+          <FontAwesomeIcon icon={faFilter} />
+        </button>
       </div>
     </div>
   );

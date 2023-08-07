@@ -5,11 +5,16 @@ export default function SelectField({ data }) {
   const { containerStyle } = container;
   const { labelStyle, labelFor, labelValue } = label;
   const { selectStyle, selectId, selectValue, onChange, options } = select;
-  const optionList = options.map((l, index) => (
-    <option value={l} key={index}>
-      {l}
-    </option>
-  ));
+
+  const getOptionsList = (options) => {
+    console.log("function: getOptionsList, called", options);
+    return options.map((l, index) => (
+      <option value={l} key={index}>
+        {l}
+      </option>
+    ));
+  };
+
   return (
     <div id="select-block" style={containerStyle}>
       <label style={labelStyle} for={labelFor}>
@@ -21,7 +26,7 @@ export default function SelectField({ data }) {
         value={selectValue}
         onChange={(e) => onChange(e)}
       >
-        {optionList}
+        {getOptionsList(options)}
       </select>
     </div>
   );

@@ -1,17 +1,20 @@
 import React, { useEffect, useState, useContext } from "react";
 import NewsCard from "./NewsCard";
-// import axios from "axios";
+import axios from "axios";
 import { HeaderContext } from "../App";
 import FilterContainer from "./FilterContainer";
+import ProgressBar from "./utils/ProgressBar";
 
 export default function ResultContainer({ triggerAPI }) {
-  const apiKey = "5581761c8fb14321a7e0b74248e4c56e";
+  const apiKey = "5581761c8fb14321a7e0b74248e4c56e"; /* enter your keys */
   const { state } = useContext(HeaderContext);
   const { filter, setTriggerAPI } = state;
 
   const [resultData, setResultData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const getActiveFilter = (param) => {
+    setIsLoading(true);
     let activeFilter = [],
       i;
     for (i in param) {
@@ -36,6 +39,7 @@ export default function ResultContainer({ triggerAPI }) {
   };
 
   const fetchNEWS = () => {
+    if (!triggerAPI) return;
     console.group("resultContainer");
 
     let url = "https://newsapi.org/v2/",
@@ -58,9 +62,6 @@ export default function ResultContainer({ triggerAPI }) {
     let path = "everything?";
 
     switch (filter.priority) {
-      case "everything":
-        filterArray = where(filterArray, ["category", "country", "priority"]);
-        break;
       case "top-headlines":
         filterArray = where(filterArray, [
           "language",
@@ -80,6 +81,10 @@ export default function ResultContainer({ triggerAPI }) {
         );
         path = `top-headlines/${filter.priority}?`;
         break;
+      case "everything":
+      default:
+        filterArray = where(filterArray, ["category", "country", "priority"]);
+        break;
     }
 
     filterArray = getFilterQuery(filterArray, filterObj);
@@ -92,49 +97,38 @@ export default function ResultContainer({ triggerAPI }) {
     url = url + path + qFilter + keyParam;
     console.log({ url });
 
-    // if (url.length)
-    // axios
-    //   .get(url)
-    //   .then((response) => {
-    //     switch (response.status) {
-    //       case 200:
-    //         console.log("status: 200");
-    //         if (response?.data?.articles.length > 0)
-    //           setResultData(response.data.articles);
-    //         else if (response?.data?.articles.length)
-    //           console.log("no data found");
-    //         break;
-    //       default:
-    //         console.log("error occured");
-    //     }
-    //     state.setPriority("");
-    //   })
-    //   .catch((err) => {
-    //     console.log(err.response.data.status);
-    //     if (err.response.data.status === "error")
-    //       alert(err.response.data.message);
-    // switch (err.response.data.code) {
-    //   case "parameterInvalid":
-    //     console.log(err.response.data.message);
-    //     break
-    //   case "apiKeyExhausted":
-    //     console.log(err.response.data.message);
-    //     break
-    //   case "apiKeyDisabled":
-    //     console.log(err.response.data.message);
-    //     break
-    //     case "apiKeyDisabled":
-    //       console.log(err.response.data.message);
-    //       break
-    // }
-    //   state.setPriority("");
-    // });
+    axios
+      .get(url)
+      .then((response) => {
+        switch (response.status) {
+          case 200:
+            console.log("status: 200");
+            if (response?.data?.articles?.length > 0)
+              setResultData(response.data.articles);
+            else if (!response?.data?.articles?.length) {
+              console.log("no data found");
+              alert("no data found");
+            }
+            break;
+          default:
+            alert("error occured");
+            console.log("error occured");
+        }
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        console.log("status", err.response?.data?.status);
+        if (err.response?.data?.status === "error")
+          alert(err.response.data.message);
+
+        setIsLoading(false);
+      });
     setTriggerAPI(false);
     console.groupEnd("resultContainer");
   };
 
   useEffect(() => {
-    triggerAPI && fetchNEWS();
+    fetchNEWS();
   }, [triggerAPI]);
 
   const content = resultData?.map((x, index) => (
@@ -142,31 +136,44 @@ export default function ResultContainer({ triggerAPI }) {
   ));
 
   return (
-    <div style={{ display: "flex" }}>
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "space-evenly",
-          padding: "10px",
-          width: "100%",
-        }}
-      >
-        {content}
+    <>
+      <div style={{ display: "flex" }}>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "space-evenly",
+            padding: "10px",
+            width: "100%",
+          }}
+        >
+          {content}
+        </div>
+
+        {state.showFilter && (
+          <FilterContainer
+            style={{
+              width: "fit-content",
+              padding: "10px",
+              height: "82.6vh",
+              textAlign: "end",
+              backgroundColor: "darkcyan",
+              borderLeft: "1px solid #CCC",
+            }}
+          />
+        )}
       </div>
 
-      {state.showFilter && (
-        <FilterContainer
+      {isLoading && (
+        <ProgressBar
           style={{
-            width: "fit-content",
-            padding: "10px",
-            height: "82.6vh",
-            textAlign: "end",
-            backgroundColor: "darkcyan",
-            borderLeft: "1px solid #CCC",
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50px, -50px)",
           }}
         />
       )}
-    </div>
+    </>
   );
 }
